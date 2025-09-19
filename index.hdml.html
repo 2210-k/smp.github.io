@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЕСС - Единая Служба Спасения</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        
+        header {
+            background-color: #d32f2f;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: #f0f2f5;
+            border-bottom: 2px solid #d32f2f;
+        }
+        
+        .tab-button {
+            padding: 1rem;
+            background-color: #e0e0e0;
+            border: none;
+            cursor: pointer;
+            flex: 1;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .tab-button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .tab-button.active {
+            background-color: #d32f2f;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            background-color: white;
+            min-height: 70vh;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        button {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #b71c1c;
+        }
+        
+        .password-prompt {
+            margin: 2rem 0;
+            padding: 1rem;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .document-list {
+            margin-top: 2rem;
+        }
+        
+        .document-item {
+            padding: 1rem;
+            border: 1px solid #ddd;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .document-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .approved {
+            border-left: 5px solid #4caf50;
+        }
+        
+        .rejected {
+            border-left: 5px solid #d32f2f;
+        }
+        
+        .pending {
+            border-left: 5px solid #ff9800;
+        }
+        
+        .archive-section {
+            margin-top: 2rem;
+        }
+        
+        .document-details {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #eee;
+            border-radius: 5px;
+        }
+        
+        .document-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f5f5f5;
+        }
+        
+        .document-preview h4 {
+            margin-bottom: 0.5rem;
+            color: #d32f2f;
+        }
+        
+        .document-preview p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .clear-history {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #333;
+            color: white;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ЕСС - Единая Служба Спасения</h1>
+        <p>Внутренняя система документооборота</p>
+    </header>
+    
+    <div class="tabs">
+        <button class="tab-button active" data-tab="smp">СМП и ОБ</button>
+        <button class="tab-button" data-tab="mchs">МЧС</button>
+        <button class="tab-button" data-tab="admin">НАЧАЛЬСТВО</button>
+    </div>
+    
+    <div class="tab-content active" id="smp-tab">
+        <h2>Служба Медицинской Помощи и Охраны Безопасности</h2>
+        
+        <div class="form-group">
+            <h3>Карта вызова</h3>
+            <form id="call-form">
+                <div class="form-group">
+                    <label for="patient-fio">ФИО больного:</label>
+                    <input type="text" id="patient-fio" required>
+                </div>
+                <div class="form-group">
+                    <label for="patient-passport">Номер паспорта:</label>
+                    <input type="text" id="patient-passport" required>
+                </div>
+                <div class="form-group">
+                    <label for="patient-age">Возраст:</label>
+                    <input type="number" id="patient-age" required>
+                </div>
+                <div class="form-group">
+                    <label for="patient-gender">Пол:</label>
+                    <select id="patient-gender" required>
+                        <option value="">Выберите пол</option>
+                        <option value="male">Мужской</option>
+                        <option value="female">Женский</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="patient-workplace">Место работы:</label>
+                    <input type="text" id="patient-workplace">
+                </div>
+                <div class="form-group">
+                    <label for="call-date">Дата и время вызова:</label>
+                    <input type="datetime-local" id="call-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="call-address">Адрес вызова:</label>
+                    <input type="text" id="call-address" required>
+                </div>
+                <div class="form-group">
+                    <label for="call-reason">Причина вызова:</label>
+                    <textarea id="call-reason" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="call-diagnosis">Диагноз:</label>
+                    <textarea id="call-diagnosis" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="call-team">Состав бригады:</label>
+                    <input type="text" id="call-team" required>
+                </div>
+                <button type="submit">Сохранить карту вызова</button>
+            </form>
+        </div>
+        
+        <div class="form-group">
+            <h3>Документ о анализах</h3>
+            <form id="analysis-form">
+                <div class="form-group">
+                    <label for="analysis-patient-fio">ФИО пациента:</label>
+                    <input type="text" id="analysis-patient-fio" required>
+                </div>
+                <div class="form-group">
+                    <label for="analysis-patient-passport">Номер паспорта:</label>
+                    <input type="text" id="analysis-patient-passport" required>
+                </div>
+                <div class="form-group">
+                    <label for="analysis-patient-age">Возраст:</label>
+                    <input type="number" id="analysis-patient-age" required>
+                </div>
+                <div class="form-group">
+                    <label for="analysis-patient-gender">Пол:</label>
+                    <select id="analysis-patient-gender" required>
+                        <option value="">Выберите пол</option>
+                        <option value="male">Мужской</option>
+                        <option value="female">Женский</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="analysis-patient-workplace">Место работы:</label>
+                    <input type="text" id="analysis-patient-workplace">
+                </div>
+                <div class="form-group">
+                    <label for="analysis-type">Тип анализа:</label>
+                    <select id="analysis-type" required>
+                        <option value="">Выберите тип анализа</option>
+                        <option value="blood">Анализ крови</option>
+                        <option value="urine">Анализ мочи</option>
+                        <option value="ecg">ЭКГ</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="analysis-results">Результаты анализа:</label>
+                    <textarea id="analysis-results" rows="4" required></textarea>
+                </div>
+                <button type="submit">Сохранить анализ</button>
+            </form>
+        </div>
+        
+        <div class="form-group">
+            <h3>Медицинское заключение/консультация</h3>
+            <form id="medical-form">
+                <div class="form-group">
+                    <label for="medical-patient-fio">ФИО пациента:</label>
+                    <input type="text" id="medical-patient-fio" required>
+                </div>
+                <div class="form-group">
+                    <label for="medical-patient-passport">Номер паспорта:</label>
+                    <input type="text" id="medical-patient-passport" required>
+                </div>
+                <div class="form-group">
+                    <label for="medical-patient-age">Возраст:</label>
+                    <input type="number" id="medical-patient-age" required>
+                </div>
+                <div class="form-group">
+                    <label for="medical-patient-gender">Пол:</label>
+                    <select id="medical-patient-gender" required>
+                        <option value="">Выберите пол</option>
+                        <option value="male">Мужской</option>
+                        <option value="female">Женский</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="medical-patient-workplace">Место работы:</label>
+                    <input type="text" id="medical-patient-workplace">
+                </div>
+                <div class="form-group">
+                    <label for="consultation-date">Дата консультации:</label>
+                    <input type="date" id="consultation-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="doctor-name">ФИО врача:</label>
+                    <input type="text" id="doctor-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="diagnosis">Диагноз:</label>
+                    <textarea id="diagnosis" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="recommendations">Рекомендации:</label>
+                    <textarea id="recommendations" rows="3" required></textarea>
+                </div>
+                <button type="submit">Сохранить заключение</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="mchs-tab">
+        <h2>Министерство Чрезвычайных Ситуаций</h2>
+        
+        <div class="form-group">
+            <h3>Отчет о тушении пожара</h3>
+            <form id="fire-report-form">
+                <div class="form-group">
+                    <label for="fire-date">Дата и время пожара:</label>
+                    <input type="datetime-local" id="fire-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="fire-address">Адрес пожара:</label>
+                    <input type="text" id="fire-address" required>
+                </div>
+                <div class="form-group">
+                    <label for="fire-area">Площадь пожара (кв.м):</label>
+                    <input type="number" id="fire-area" required>
+                </div>
+                <div class="form-group">
+                    <label for="fire-cause">Причина пожара:</label>
+                    <textarea id="fire-cause" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="fire-team">Состав бригады:</label>
+                    <input type="text" id="fire-team" required>
+                </div>
+                <div class="form-group">
+                    <label for="fire-damage">Нанесенный ущерб:</label>
+                    <textarea id="fire-damage" rows="3" required></textarea>
+                </div>
+                <button type="submit">Сохранить отчет</button>
+            </form>
+        </div>
+        
+        <div class="form-group">
+            <h3>Проверка на противопожарную безопасность</h3>
+            <form id="safety-check-form">
+                <div class="form-group">
+                    <label for="check-date">Дата проверки:</label>
+                    <input type="date" id="check-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="check-address">Адрес проверяемого объекта:</label>
+                    <input type="text" id="check-address" required>
+                </div>
+                <div class="form-group">
+                    <label for="check-inspector">ФИО инспектора:</label>
+                    <input type="text" id="check-inspector" required>
+                </div>
+                <div class="form-group">
+                    <label for="check-violations">Выявленные нарушения:</label>
+                    <textarea id="check-violations" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="check-recommendations">Рекомендации:</label>
+                    <textarea id="check-recommendations" rows="3" required></textarea>
+                </div>
+                <button type="submit">Сохранить отчет о проверке</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="admin-tab">
+        <h2>Панель начальства</h2>
+        
+        <div class="password-prompt">
+            <h3>Требуется авторизация</h3>
+            <div class="form-group">
+                <label for="admin-password">Пароль:</label>
+                <input type="password" id="admin-password">
+            </div>
+            <button id="login-admin">Войти</button>
+        </div>
+        
+        <div class="admin-content" style="display: none;">
+            <h3>Архив документов</h3>
+            
+            <div class="document-list" id="document-archive">
+                <!-- Документы будут загружаться здесь -->
+            </div>
+            
+            <div class="archive-section">
+                <h3>Одобрение документов</h3>
+                
+                <div class="form-group">
+                    <label for="selected-document">Выберите документ для просмотра и проверки:</label>
+                    <select id="selected-document">
+                        <option value="">-- Выберите документ --</option>
+                    </select>
+                </div>
+                
+                <div class="document-preview" id="document-preview">
+                    <p>Выберите документ для просмотра</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin-comment">Примечание/рекомендации:</label>
+                    <textarea id="admin-comment" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin-name">Ваше ФИО:</label>
+                    <input type="text" id="admin-name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="bonus-amount">Назначение премии (0-5000 руб.):</label>
+                    <input type="number" id="bonus-amount" min="0" max="5000" value="0">
+                </div>
+                
+                <div class="document-actions">
+                    <button id="approve-doc">Одобрить</button>
+                    <button id="reject-doc">Отклонить</button>
+                </div>
+            </div>
+            
+            <div class="clear-history">
+                <h3>Очистка истории документов</h3>
+                <div class="form-group">
+                    <label for="clear-password">Пароль для очистки:</label>
+                    <input type="password" id="clear-password">
+                </div>
+                <button id="clear-history-btn">Очистить историю</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Единая Служба Спасения © 2023. Все права защищены.</p>
+    </footer>
+
+    <script>
+        // Переключение между вкладками
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Убираем активный класс у всех кнопок и контента
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Добавляем активный класс к выбранной кнопке
+                button.classList.add('active');
+                
+                // Показываем соответствующий контент
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // Имитация хранения данных (в реальном приложении здесь был бы сервер)
+        let documents = JSON.parse(localStorage.getItem('ess_documents')) || [];
+        
+        // Обработка форм СМП и ОБ
+        document.getElementById('call-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveDocument('Карта вызова', {
+                patientFio: document.getElementById('patient-fio').value,
+                patientPassport: document.getElementById('patient-passport').value,
+                patientAge: document.getElementById('patient-age').value,
+                patientGender: document.getElementById('patient-gender').value,
+                patientWorkplace: document.getElementById('patient-workplace').value,
+                date: document.getElementById('call-date').value,
+                address: document.getElementById('call-address').value,
+                reason: document.getElementById('call-reason').value,
+                diagnosis: document.getElementById('call-diagnosis').value,
+                team: document.getElementById('call-team').value
+            });
+            this.reset();
+        });
+        
+        document.getElementById('analysis-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveDocument('Анализ', {
+                patientFio: document.getElementById('analysis-patient-fio').value,
+                patientPassport: document.getElementById('analysis-patient-passport').value,
+                patientAge: document.getElementById('analysis-patient-age').value,
+                patientGender: document.getElementById('analysis-patient-gender').value,
+                patientWorkplace: document.getElementById('analysis-patient-workplace').value,
+                type: document.getElementById('analysis-type').value,
+                results: document.getElementById('analysis-results').value
+            });
+            this.reset();
+        });
+        
+        document.getElementById('medical-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveDocument('Медицинское заключение', {
+                patientFio: document.getElementById('medical-patient-fio').value,
+                patientPassport: document.getElementById('medical-patient-passport').value,
+                patientAge: document.getElementById('medical-patient-age').value,
+                patientGender: document.getElementById('medical-patient-gender').value,
+                patientWorkplace: document.getElementById('medical-patient-workplace').value,
+                date: document.getElementById('consultation-date').value,
+                doctor: document.getElementById('doctor-name').value,
+                diagnosis: document.getElementById('diagnosis').value,
+                recommendations: document.getElementById('recommendations').value
+            });
+            this.reset();
+        });
+        
+        // Обработка форм МЧС
+        document.getElementById('fire-report-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveDocument('Отчет о тушении пожара', {
+                date: document.getElementById('fire-date').value,
+                address: document.getElementById('fire-address').value,
+                area: document.getElementById('fire-area').value,
+                cause: document.getElementById('fire-cause').value,
+                team: document.getElementById('fire-team').value,
+                damage: document.getElementById('fire-damage').value
+            });
+            this.reset();
+        });
+        
+        document.getElementById('safety-check-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveDocument('Проверка на ПБ', {
+                date: document.getElementById('check-date').value,
+                address: document.getElementById('check-address').value,
+                inspector: document.getElementById('check-inspector').value,
+                violations: document.getElementById('check-violations').value,
+                recommendations: document.getElementById('check-recommendations').value
+            });
+            this.reset();
+        });
+        
+        // Функция сохранения документа
+        function saveDocument(type, data) {
+            const document = {
+                id: Date.now(),
+                type: type,
+                data: data,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            };
+            
+            documents.push(document);
+            localStorage.setItem('ess_documents', JSON.stringify(documents));
+            alert('Документ сохранен и отправлен в архив начальства!');
+        }
+        
+        // Авторизация для начальства
+        document.getElementById('login-admin').addEventListener('click', function() {
+            const password = document.getElementById('admin-password').value;
+            if (password === '121212') {
+                document.querySelector('.password-prompt').style.display = 'none';
+                document.querySelector('.admin-content').style.display = 'block';
+                loadDocuments();
+            } else {
+                alert('Неверный пароль!');
+            }
+        });
+        
+        // Загрузка документов для начальства
+        function loadDocuments() {
+            const archiveList = document.getElementById('document-archive');
+            const documentSelect = document.getElementById('selected-document');
+            
+            // Очищаем предыдущие данные
+            archiveList.innerHTML = '';
+            documentSelect.innerHTML = '<option value="">-- Выберите документ --</option>';
+            
+            // Добавляем документы в список и выпадающий список
+            documents.forEach(doc => {
+                // Добавляем в список документов
+                const docElement = document.createElement('div');
+                docElement.className = `document-item ${doc.status}`;
+                docElement.innerHTML = `
+                    <h4>${doc.type} (${new Date(doc.timestamp).toLocaleDateString()})</h4>
+                    <p>Статус: ${getStatusText(doc.status)}</p>
+                    ${doc.adminComment ? `<p>Комментарий: ${doc.adminComment}</p>` : ''}
+                    ${doc.adminName ? `<p>Проверил: ${doc.adminName}</p>` : ''}
+                    ${doc.bonus ? `<p>Премия: ${doc.bonus} руб.</p>` : ''}
+                `;
+                archiveList.appendChild(docElement);
+                
+                // Добавляем в выпадающий список только ожидающие документы
+                if (doc.status === 'pending') {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = `${doc.type} (${new Date(doc.timestamp).toLocaleDateString()})`;
+                    documentSelect.appendChild(option);
+                }
+            });
+            
+            // Добавляем обработчик для просмотра документов
+            documentSelect.addEventListener('change', function() {
+                const docId = this.value;
+                if (docId) {
+                    const doc = documents.find(d => d.id == docId);
+                    if (doc) {
+                        showDocumentPreview(doc);
+                    }
+                } else {
+                    document.getElementById('document-preview').innerHTML = '<p>Выберите документ для просмотра</p>';
+                }
+            });
+        }
+        
+        // Функция для отображения предпросмотра документа
+        function showDocumentPreview(doc) {
+            const preview = document.getElementById('document-preview');
+            let content = `
+                <h4>${doc.type}</h4>
+                <p><strong>Дата создания:</strong> ${new Date(doc.timestamp).toLocaleString()}</p>
+            `;
+            
+            // Добавляем информацию в зависимости от типа документа
+            if (doc.type === 'Карта вызова') {
+                content += `
+                    <p><strong>ФИО больного:</strong> ${doc.data.patientFio}</p>
+                    <p><strong>Номер паспорта:</strong> ${doc.data.patientPassport}</p>
+                    <p><strong>Возраст:</strong> ${doc.data.patientAge}</p>
+                    <p><strong>Пол:</strong> ${doc.data.patientGender === 'male' ? 'Мужской' : 'Женский'}</p>
+                    <p><strong>Место работы:</strong> ${doc.data.patientWorkplace}</p>
+                    <p><strong>Дата вызова:</strong> ${doc.data.date}</p>
+                    <p><strong>Адрес:</strong> ${doc.data.address}</p>
+                    <p><strong>Причина вызова:</strong> ${doc.data.reason}</p>
+                    <p><strong>Диагноз:</strong> ${doc.data.diagnosis}</p>
+                    <p><strong>Состав бригады:</strong> ${doc.data.team}</p>
+                `;
+            } else if (doc.type === 'Анализ') {
+                content += `
+                    <p><strong>ФИО пациента:</strong> ${doc.data.patientFio}</p>
+                    <p><strong>Номер паспорта:</strong> ${doc.data.patientPassport}</p>
+                    <p><strong>Возраст:</strong> ${doc.data.patientAge}</p>
+                    <p><strong>Пол:</strong> ${doc.data.patientGender === 'male' ? 'Мужской' : 'Женский'}</p>
+                    <p><strong>Место работы:</strong> ${doc.data.patientWorkplace}</p>
+                    <p><strong>Тип анализа:</strong> ${doc.data.type}</p>
+                    <p><strong>Результаты:</strong> ${doc.data.results}</p>
+                `;
+            } else if (doc.type === 'Медицинское заключение') {
+                content += `
+                    <p><strong>ФИО пациента:</strong> ${doc.data.patientFio}</p>
+                    <p><strong>Номер паспорта:</strong> ${doc.data.patientPassport}</p>
+                    <p><strong>Возраст:</strong> ${doc.data.patientAge}</p>
+                    <p><strong>Пол:</strong> ${doc.data.patientGender === 'male' ? 'Мужской' : 'Женский'}</p>
+                    <p><strong>Место работы:</strong> ${doc.data.patientWorkplace}</p>
+                    <p><strong>Дата консультации:</strong> ${doc.data.date}</p>
+                    <p><strong>Врач:</strong> ${doc.data.doctor}</p>
+                    <p><strong>Диагноз:</strong> ${doc.data.diagnosis}</p>
+                    <p><strong>Рекомендации:</strong> ${doc.data.recommendations}</p>
+                `;
+            } else if (doc.type === 'Отчет о тушении пожара') {
+                content += `
+                    <p><strong>Дата пожара:</strong> ${doc.data.date}</p>
+                    <p><strong>Адрес:</strong> ${doc.data.address}</p>
+                    <p><strong>Площадь пожара:</strong> ${doc.data.area} кв.м</p>
+                    <p><strong>Причина:</strong> ${doc.data.cause}</p>
+                    <p><strong>Состав бригады:</strong> ${doc.data.team}</p>
+                    <p><strong>Ущерб:</strong> ${doc.data.damage}</p>
+                `;
+            } else if (doc.type === 'Проверка на ПБ') {
+                content += `
+                    <p><strong>Дата проверки:</strong> ${doc.data.date}</p>
+                    <p><strong>Адрес объекта:</strong> ${doc.data.address}</p>
+                    <p><strong>Инспектор:</strong> ${doc.data.inspector}</p>
+                    <p><strong>Нарушения:</strong> ${doc.data.violations || 'Не указаны'}</p>
+                    <p><strong>Рекомендации:</strong> ${doc.data.recommendations}</p>
+                `;
+            }
+            
+            preview.innerHTML = content;
+        }
+        
+        // Получение текста статуса
+        function getStatusText(status) {
+            switch(status) {
+                case 'approved': return 'Одобрено';
+                case 'rejected': return 'Отклонено';
+                default: return 'На рассмотрении';
+            }
+        }
+        
+        // Обработка одобрения/отклонения документов
+        document.getElementById('approve-doc').addEventListener('click', function() {
+            processDocument('approved');
+        });
+        
+        document.getElementById('reject-doc').addEventListener('click', function() {
+            processDocument('rejected');
+        });
+        
+        function processDocument(status) {
+            const docId = document.getElementById('selected-document').value;
+            const comment = document.getElementById('admin-comment').value;
+            const name = document.getElementById('admin-name').value;
+            const bonus = document.getElementById('bonus-amount').value;
+            
+            if (!docId) {
+                alert('Выберите документ!');
+                return;
+            }
+            
+            if (!name) {
+                alert('Введите ваше ФИО!');
+                return;
+            }
+            
+            // Обновляем документ
+            documents = documents.map(doc => {
+                if (doc.id == docId) {
+                    return {
+                        ...doc,
+                        status: status,
+                        adminComment: comment,
+                        adminName: name,
+                        bonus: status === 'approved' ? bonus : 0
+                    };
+                }
+                return doc;
+            });
+            
+            // Сохраняем обновленные документы
+            localStorage.setItem('ess_documents', JSON.stringify(documents));
+            
+            // Обновляем интерфейс
+            loadDocuments();
+            
+            // Очищаем форму
+            document.getElementById('admin-comment').value = '';
+            document.getElementById('bonus-amount').value = '0';
+            document.getElementById('document-preview').innerHTML = '<p>Выберите документ для просмотра</p>';
+            
+            alert(`Документ ${status === 'approved' ? 'одобрен' : 'отклонен'}!`);
+        }
+        
+        // Очистка истории
+        document.getElementById('clear-history-btn').addEventListener('click', function() {
+            const password = document.getElementById('clear-password').value;
+            if (password === '123456') {
+                if (confirm('Вы уверены, что хотите очистить всю историю документов? Это действие нельзя отменить.')) {
+                    documents = [];
+                    localStorage.setItem('ess_documents', JSON.stringify(documents));
+                    loadDocuments();
+                    document.getElementById('clear-password').value = '';
+                    alert('История документов очищена!');
+                }
+            } else {
+                alert('Неверный пароль для очистки истории!');
+            }
+        });
+    </script>
+</body>
+</html>
